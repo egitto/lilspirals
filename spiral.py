@@ -97,10 +97,10 @@ class ViewPoints:
     print(printme)
 
 
-def animate(delay = 0.01, step = 0.000002, n = 900, size = (200,100)):
+def animate(delay = 0.2, step = 0.0000002, n = 900, size = (300,100)):
   i = 1
   while True:
-    ViewPoints(makePoints(theta, i+1), size).pr()
+    ViewPoints(makePoints(theta*(1+step*i), n), size).pr()
     print(theta*(1+step*i))
     i += 100
     time.sleep(delay)
