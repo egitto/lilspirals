@@ -1,4 +1,4 @@
-from math import e, pi, sin, cos, sqrt, log
+from math import e, pi, sin, cos, sqrt, log, sinh, cosh
 from numpy import array, matrix
 import time
 from transforms3d import quaternions as quats
@@ -34,7 +34,7 @@ class rPoint:
     self.x = cos(self.theta)*self.r
     self.y = sin(self.theta)*self.r
     self.z = self.z_of(w)
-    self.char = str(int(self.z/5)%10)
+    self.char = str(int(self.z)%10)
   def xy_pos(self):
     return (self.x, self.y)
   def xyz_pos(self):
@@ -42,7 +42,7 @@ class rPoint:
   def r_of(self, w):
     return w
   def z_of(self, w):
-    return w**1.2
+    return w**0.2
   def __repr__(self):
     return str((self.x,self.y,self.z))
 
@@ -75,46 +75,54 @@ def makePoints(dTheta, n):
 class ViewPoints:
   def __init__(self, points, size = (240,100), rotateQuaternion = (1,0,0,0)):
     self.points = points
-    self.xyz_points = self.get_xyz_points(points, rotateQuaternion)
+    self.xyz_points = self.get_xyz_points(points, rotateQuaternion) # dictionary
     self.size = size
   def get_xyz_points(self, points, rotateQuaternion):
     rotateMatrix = matrix(quats.quat2mat(rotateQuaternion))
     return {
-      pt: array(matrix(pt.xyz_pos())*rotateMatrix)
+      pt: array(matrix(pt.xyz_pos())*rotateMatrix)[0]
       for pt in points
     }
-  def autoscale(self):
-    m = max([max(map(abs,pt.xy_pos())) for pt in self.points])
-    return [(self.size[i]/m/2.0) for i in range(len(self.size))]
-  def scale(self, xy_pos, zoom): # this should be in spiralPoint
-    return tuple([xy_pos[i]*zoom[i] for i in range(len(xy_pos))])
-  def translate(self, xy_pos, shift): # this should be in spiralPoint
-    return tuple([xy_pos[i]+shift[i] for i in range(len(xy_pos))])
+  def render(self):
+    points = array([[
+        self.xyz_points[pt][0], 
+        self.xyz_points[pt][1],
+        int(self.xyz_points[pt][2])]
+        for pt in self.points])
+    RenderXY(points, size = self.size).pr()
+
+class RenderXY:
+  def __init__(self, points, size = (240, 100)):
+    self.x, self.y = size
+    self.scaled_points = self.scale(points)
+  def scale(self, points_XYetc):
+    xs = points_XYetc[:,0]
+    ys = points_XYetc[:,1]
+    ch = points_XYetc[:,2]
+    xs = (xs - xs.min()) * (self.x - 1) / (xs.max() - xs.min())
+    ys = (ys - ys.min()) * (self.y - 1) / (ys.max() - ys.min())
+    return zip(xs, ys, ch)
   def pr(self):
-    dx, dy = self.size
-    a = array([[' ']*dx]*dy)
-    zoom = self.autoscale()
-    a[dy//2][dx//2] = 'x'
-    for pt in self.points:
-      x,z,y = self.xyz_points[pt][0]
-      x,y = self.scale((x,y), zoom)
-      x,y = self.translate((x,y), (dx/2, dy/2))
-      a[int(y)%dy][int(x)%dx] = pt.char
+    a = array([[' ']*self.x]*self.y)
+    for pt in self.scaled_points:
+      y = int(pt[1])%self.y
+      x = int(pt[0])%self.x
+      a[y][x] = pt[2]
     printme = ""
     for row in a:
       s = "\n"
-      for chr in row:
-        s += chr
+      for ch in row:
+        s += str(ch)
       printme += s
     print(printme)
 
-def animate(delay = .1, step = 0.00002, n = 900, size = (100,60)):
+def animate(delay = .14, step = 0.003, n = 80, size = (50,30)):
   i = 1
-  q = (1, 0, 0, 0)
+  q = (0.7, 0.7, 0, 0)
   while True:
-    q = quats.qmult(q, (1, 0.01, 0, 0))
+    q = quats.qmult(q, (1, 0, 0.1, 0))
     theta = pi*sqrt(2) + step*i
-    ViewPoints(makePoints(theta, n), size, rotateQuaternion = q).pr()
+    ViewPoints(makePoints(theta, n), size, rotateQuaternion = q).render()
     print(theta)
     i += 1
     time.sleep(delay)
@@ -122,5 +130,5 @@ def animate(delay = .1, step = 0.00002, n = 900, size = (100,60)):
 # good values for theta: 2.33068600268, sqrt(2)*pi, sqrt(10)*pi, 2.32324311855, 4.62290939916, 20.7563962399, 2.32120903841
 
 theta = sqrt(2)*pi
-# ViewPoints(makePoints(theta, 300), size = (100,60), rotateQuaternion = (1,0.1,0,0)).pr()
+# ViewPoints(makePoints(theta, 300), size = (100,60), rotateQuaternion = (1,0.1,0,0)).render()
 animate()
