@@ -20,9 +20,9 @@ class rPoint:
   def xyz_pos(self):
     return (self.x, self.y, self.z)
   def r_of(self, w):
-    return w**3
+    return w**5
   def z_of(self, w):
-    return 20*w-60
+    return w*100-200
   def __repr__(self):
     return str((self.x,self.y,self.z))
 
@@ -102,13 +102,13 @@ class RenderXY:
       printme += s
     print(printme)
 
-def animate(delay = .14, step = 0.001, n = 180, size = (170,70), smooth = 2):
+def animate(delay = .15, step = 0.0005, n = 380, size = (170,70), smooth = 4):
   i = 1
   q = (1, 0, 0, 0)
   while True:
-    q = quats.qmult(q, quats.axangle2quat((0,1,0), -.005*tau*smooth))
+    q = quats.qmult(q, quats.axangle2quat((0,1,0), .005*tau/smooth))
     print(q)
-    theta = tau+0.4 + step*i/smooth
+    theta = tau/sqrt(2) + step*i/smooth
     ViewPoints(makePoints(theta, n), size, rotateQuaternion = q).render()
     print(theta)
     i += 1
