@@ -30,6 +30,7 @@ def makePoints(dTheta, n, rPoint, get_dt):
   old_z = old_r = 0
   # start t at 1, not 0, because otherwise the first get_dt
   t = 0 # units: "seconds" (not related to real time, all this is within one frame)
+  old_dt = 1
   rPoints = []
   density = 3 # units: points per second
   for i in range(1,n):
@@ -37,8 +38,10 @@ def makePoints(dTheta, n, rPoint, get_dt):
     point = rPoint(i, theta, t)
     rPoints += [point]
     z, r = point.z, point.r # z and radius given a particular time
-    t += get_dt(density, r, r-old_r, z-old_z) # "wait" how long before making the next point?
-    old_z, old_r = z, r
+    # dt = get_dt(density, r, r-old_r, z-old_z) # "wait" how long before making the next point?
+    dt = get_dt(density, old_dt, r, r-old_r, z-old_z) # "wait" how long before making the next point?
+    t += dt
+    old_z, old_r, old_dt = z, r, dt
   return rPoints
 
 class ViewPoints:
@@ -101,34 +104,45 @@ class overallShape:
     pass
   def r_of(self, t):
     # radius from center, given t where t increases monotonically with point number.
-    return t**5
+    return sin(t) + 1.01
+    # return t**5
   def z_of(self, t):
     # depth from origin, given t where t increases monotonically with point number.
-    return 100*t-200
-  def get_dt(self, density, r, dr, dz):
+    return t / 200.0 - 10
+  def get_dt(self, density, dt, r, dr, dz):
+    # choose dt to achieve fixed dA of 1/density
+    # assumption: dA is proportional to dt
+    goal_dA = 1.0 / density # m^2 / point
+    dA = r * sqrt(dz**2 + dr**2) # m^2
+    dA = dA if dA else 1 # the first time, we won't have any data
+    # square root is just for damping, don't want to over-adjust
+    return dt * sqrt(goal_dA / dA)
+  def get_dt_old(self, density, r, dr, dz):
     # amount to increment t by when progressing to the next point
     # t is kinda like time; it's a variable that increases. it's here to maintain even point density
     # unlike time, however, it has nothing to do with the animate function
     # dt units: s / points
     # t units: s (dt is ~integrated wrt points, which is multiplying, unit-wise)
-    if r == 0 or dr == 0:
+    if r == 0:
       return 1
+    dr = dr if dr else 1
     # unitless bit is related to arc length formula; I don't know why this works (I suspect it doesn't really)
     # 1 / ((points / m  / s) * m * (unitless)) = s / points
-    return 1 / (density * r * (1 + (dz/dr)**2)**0.5)
+    return 1 / (density * r * sqrt(1 + (dz/dr)**2))
 
-def animate(delay = .15, step = 0.0005, n = 380, size = (170,70), smooth = 4):
+def animate(delay = .15, step = 0.00005, n = 380, size = (170,70), smooth = 4):
   i = 1
   q = (1, 0, 0, 0)
   shape = overallShape()
   rPoint = rPointFactory(shape.z_of, shape.r_of)
   while True:
     q = quats.qmult(q, quats.axangle2quat((0,1,0), .005*tau/smooth))
-    print(q)
+    # print(q)
     theta = tau/sqrt(2) + step*i/smooth
     ViewPoints(makePoints(theta, n, rPoint, shape.get_dt), size, rotateQuaternion = q).render()
-    print(theta)
+    # print(theta)
     i += 1
+    # n += 1
     time.sleep(delay/smooth)
 
 # good values for theta: 2.33068600268, sqrt(2)*pi, sqrt(10)*pi, 2.32324311855, 4.62290939916, 20.7563962399, 2.32120903841
