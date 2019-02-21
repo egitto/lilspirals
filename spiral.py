@@ -26,13 +26,12 @@ def rPointFactory(z_of, r_of):
       return str((self.x,self.y,self.z))
   return rPoint
 
-def makePoints(dTheta, n, rPoint, get_dt):
+def makePoints(dTheta, n, rPoint, get_dt, density):
   old_z = old_r = 0
   # start t at 1, not 0, because otherwise the first get_dt
   t = 0 # units: "seconds" (not related to real time, all this is within one frame)
   old_dt = 1
   rPoints = []
-  density = 3 # units: points per second
   for i in range(1,n):
     theta = (i * dTheta)
     point = rPoint(i, theta, t)
@@ -100,46 +99,44 @@ class RenderXY:
 
 class overallShape:
   # just a helper class to hold the various shape functions
-  def __init__(self):
-    pass
+  def __init__(self, dA_initial = 1, r_of = False, z_of = False):
+    if (r_of):
+      self.r_of = r_of
+    if (z_of):
+      self.z_of = z_of
+    self.dA_initial = dA_initial
   def r_of(self, t):
     # radius from center, given t where t increases monotonically with point number.
-    return sin(t) + 1.01
+    return abs(sin(t))
     # return t**5
   def z_of(self, t):
     # depth from origin, given t where t increases monotonically with point number.
-    return t / 200.0 - 10
+    return cos(t)
   def get_dt(self, density, dt, r, dr, dz):
     # choose dt to achieve fixed dA of 1/density
     # assumption: dA is proportional to dt
     goal_dA = 1.0 / density # m^2 / point
     dA = r * sqrt(dz**2 + dr**2) # m^2
-    dA = dA if dA else 1 # the first time, we won't have any data
+    dA = dA if dA else self.dA_initial # the first time, we won't have any data
     # square root is just for damping, don't want to over-adjust
     return dt * sqrt(goal_dA / dA)
-  def get_dt_old(self, density, r, dr, dz):
-    # amount to increment t by when progressing to the next point
-    # t is kinda like time; it's a variable that increases. it's here to maintain even point density
-    # unlike time, however, it has nothing to do with the animate function
-    # dt units: s / points
-    # t units: s (dt is ~integrated wrt points, which is multiplying, unit-wise)
-    if r == 0:
-      return 1
-    dr = dr if dr else 1
-    # unitless bit is related to arc length formula; I don't know why this works (I suspect it doesn't really)
-    # 1 / ((points / m  / s) * m * (unitless)) = s / points
-    return 1 / (density * r * sqrt(1 + (dz/dr)**2))
 
-def animate(delay = .15, step = 0.00005, n = 380, size = (170,70), smooth = 4):
+class Rotation:
+  def __init__(self, initialQuaternion = (1, 0, 0, 0), moveAngle = (1, 0, 0), speed = 0.005):
+    self.moveAngle = moveAngle
+    self.initialQuaternion = initialQuaternion
+    self.speed = speed
+
+def animate(shape, rotation, delay = .15, step = 0.00005, n = 400, size = (170,70), smooth = 4, density = 400):
   i = 1
-  q = (1, 0, 0, 0)
-  shape = overallShape()
+  q = rotation.initialQuaternion
+  rotateBy = quats.axangle2quat(rotation.moveAngle, rotation.speed*tau/smooth)
   rPoint = rPointFactory(shape.z_of, shape.r_of)
   while True:
-    q = quats.qmult(q, quats.axangle2quat((0,1,0), .005*tau/smooth))
+    q = quats.qmult(q, rotateBy)
     # print(q)
     theta = tau/sqrt(2) + step*i/smooth
-    ViewPoints(makePoints(theta, n, rPoint, shape.get_dt), size, rotateQuaternion = q).render()
+    ViewPoints(makePoints(theta, n, rPoint, shape.get_dt, density), size, rotateQuaternion = q).render()
     # print(theta)
     i += 1
     # n += 1
@@ -149,4 +146,16 @@ def animate(delay = .15, step = 0.00005, n = 380, size = (170,70), smooth = 4):
 
 theta = sqrt(2)*pi
 # ViewPoints(makePoints(theta, 300), size = (100,60), rotateQuaternion = (1,0.1,0,0)).render()
-animate()
+sphere = overallShape(r_of = lambda t: abs(sin(t)), z_of = lambda t: cos(t));
+cone = overallShape(r_of = lambda t: t, z_of = lambda t: 10*t);
+cylinder = overallShape(r_of = lambda t: 0.5, z_of = lambda t: t);
+pointy_cone = overallShape(r_of = lambda t: t**2, z_of = lambda t: 10*t);
+parabola = overallShape(r_of = lambda t: t, z_of = lambda t: t**2);
+
+spinningRod = Rotation(initialQuaternion = (0, 1, 0, 0), moveAngle = (0, 1, 0))
+christmasTree = Rotation(initialQuaternion = (2**-0.5, 2**-0.5, 0, 0), speed = 0)
+spinningTree = Rotation(initialQuaternion = (2**-0.5, 2**-0.5, 0, 0), moveAngle = (0, 1, 0))
+headOnSpin = Rotation(initialQuaternion = (0, 0, 0, 1), moveAngle = (0, 0, 1))
+noRotation = Rotation(initialQuaternion = (0, 0, 0, 1), speed = 0)
+
+animate(shape = pointy_cone, rotation = noRotation)
