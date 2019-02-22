@@ -1,15 +1,38 @@
+# What is it
+When run, it prints pretty spirals in your terminal.
+
 # How to use:
 Install `numpy` and `transforms3d` (using `pip` or `easyinstall` or whatever it is kids do these days)
 
 Run `python spiral.py`
 
 # Tips
-If you don't want to install `transforms3d` then you can remove the lines about quaternions and it should mostly work, but it won't rotate
+Pass different pre-written shapes and rotations to `animate` on the last line to see different patterns
 
-Fiddle with the params in `animate` to change the animation or number of points
+Make different custom shapes; see references.
+- Blending existing shapes with blendShapes
+- Define new shapes with `overallShape` constructor, passing in custom `r_of` and `z_of` functions
+- Adjust how quickly `t` increases by changing dMod
 
-Fiddle with the global `theta` for funzies
+Several different rotations are predefined
+- `offAxis` is useful for seeing what a shape actually looks like, rotating it perpendicular to its primary symmetry axis
+- `spinningTree` is nice and pretty, showing it from its side as it rotates on its primary symmetry axis
+- `noRotation` and `headOnSpin` are nice for when you want to look at radially symmetrical patterns
 
-Fiddling with the overallShape class, specifically `r_of` and `z_of` to make different shapes
-
-If you figure out how `get_dt` is supposed to work, please let me know!
+# Further ideas (todos?):
+- Refactor into separate files
+- A better rendering system than just dumping output into a terminal
+  - ncurses?
+  - output to png or jpg?
+  - output to animated gif? (ideally via pipe)
+  - display as a legit animation that accepts input (openGL?) 
+    - must be cross-platform
+- Translate to js, run in browser? (rendered, not via `console.log`)
+- Make it a Jupyter notebook?
+- Better documentation
+- Interactivity
+  - rotate or adjust theta via user input
+  - rotate along all axes, while it keeps slowly changing
+  - blend between different shapes smoothly
+    - will need a lot of refactoring, but could be pretty cool
+- More general blendShapes, that takes more shapes as input
