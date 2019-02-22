@@ -26,12 +26,13 @@ def rPointFactory(z_of, r_of):
       return str((self.x,self.y,self.z))
   return rPoint
 
-def makePoints(dTheta, n, rPoint, get_dt, density):
+def makePoints(dTheta, n, rPoint, get_dt):
   old_z = old_r = 0
   # start t at 1, not 0, because otherwise the first get_dt
   t = 0 # units: "seconds" (not related to real time, all this is within one frame)
   old_dt = 1
   rPoints = []
+  density = n
   for i in range(1,n):
     theta = (i * dTheta)
     point = rPoint(i, theta, t)
@@ -124,7 +125,7 @@ class Rotation:
     self.initialQuaternion = initialQuaternion
     self.speed = speed
 
-def animate(shape, rotation, delay = .15, step = 0.00005, n = 400, size = (170,70), smooth = 4, density = 400):
+def animate(shape, rotation, delay = .15, step = 0.00005, n = 400, size = (170,70), smooth = 4):
   i = 1
   q = rotation.initialQuaternion
   rotateBy = quats.axangle2quat(rotation.moveAngle, rotation.speed*tau/smooth)
@@ -133,7 +134,8 @@ def animate(shape, rotation, delay = .15, step = 0.00005, n = 400, size = (170,7
     q = quats.qmult(q, rotateBy)
     # print(q)
     theta = tau/sqrt(2) + step*i/smooth
-    ViewPoints(makePoints(theta, n, rPoint, shape.get_dt, density), size, rotateQuaternion = q).render()
+    points = makePoints(theta, n, rPoint, shape.get_dt)
+    ViewPoints(points, size, rotateQuaternion = q).render()
     # print(theta)
     i += 1
     # n += 1
