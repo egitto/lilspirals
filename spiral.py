@@ -1,7 +1,8 @@
 from math import e, pi, sin, cos, sqrt, log, sinh, cosh
-from numpy import array, matrix
+from numpy import array, matrix, dot
 import time
 from transforms3d import quaternions as quats
+import sys
 
 tau = 2*pi
 
@@ -47,21 +48,14 @@ def makePoints(dTheta, n, rPoint, get_dt):
 class ViewPoints:
   def __init__(self, points, size = (240,100), rotateQuaternion = (1,0,0,0)):
     self.points = points
-    self.xyz_points = self.get_xyz_points(points, rotateQuaternion) # dictionary
+    self.rotated_points = self.get_rotated_points(rotateQuaternion)
     self.size = size
-  def get_xyz_points(self, points, rotateQuaternion):
+  def get_rotated_points(self, rotateQuaternion):
     rotateMatrix = matrix(quats.quat2mat(rotateQuaternion))
-    return {
-      pt: array(matrix(pt.xyz_pos())*rotateMatrix)[0]
-      for pt in points
-    }
+    xyz = array([pt.xyz_pos() for pt in self.points])
+    return array(dot(xyz, rotateMatrix))
   def render(self):
-    points = array([[
-        self.xyz_points[pt][0], 
-        self.xyz_points[pt][1],
-        int(self.xyz_points[pt][2])]
-        for pt in self.points])
-    RenderXY(points, size = self.size).pr()
+    RenderXY(self.rotated_points, size = self.size).pr()
 
 # prevents jitter
 class Bounds:
@@ -149,6 +143,7 @@ def animate(shape, rotation, delay = .15, step = 0.00005, n = 400, size = (170,7
     # print(q)
     theta = tau/sqrt(2) + step*i/smooth
     points = makePoints(theta, n, rPoint, shape.get_dt)
+    if (i != 1): sys.stdout.write("\033[F"*(size[1] + 1))
     ViewPoints(points, size, rotateQuaternion = q).render()
     # print(theta)
     i += 1
@@ -187,5 +182,8 @@ christmasTree = Rotation(initialQuaternion = (2**-0.5, 2**-0.5, 0, 0), speed = 0
 spinningTree = Rotation(initialQuaternion = (2**-0.5, 2**-0.5, 0, 0), moveAngle = (0, 1, 0))
 headOnSpin = Rotation(initialQuaternion = (0, 0, 0, 1), moveAngle = (0, 0, 1), speed = 0.001)
 noRotation = Rotation(initialQuaternion = (0, 0, 0, 1), speed = 0)
+
+# import cProfile
+# cProfile.run('animate(shape = torus, rotation = offAxis, n = 400)')
 
 animate(shape = torus, rotation = offAxis, n = 400)
