@@ -119,6 +119,20 @@ class overallShape:
     # square root is just for damping, don't want to over-adjust
     return dt * sqrt(goal_dA / dA)
 
+def blendShapes(s1, s2, ratio = 0.5):
+  # domain of s1, s2: overallShape x such that x.r_of(t) > 0 for all t > 0
+  # domain of ratio: if x.z_of(t) > 0 for t > 0: any value besides 0 or 1
+  #   otherwise, between 0 and 1
+  def blendFxns(f1, f2):
+    return lambda t: (f1(t) ** ratio) * (f2(t) ** (1 - ratio))
+  def blendValues(a, b):
+    return (a ** ratio) * (b ** (1 - ratio))
+  r_of = blendFxns(s1.r_of, s2.r_of)
+  z_of = blendFxns(s1.z_of, s2.z_of)
+  dA_i = blendValues(s1.dA_i, s2.dA_i)
+  dMod = blendValues(s1.dMod, s2.dMod)
+  return overallShape(r_of = r_of, z_of = z_of, dA_i = dA_i, dMod = dMod)
+
 class Rotation:
   def __init__(self, initialQuaternion = (1, 0, 0, 0), moveAngle = (1, 0, 0), speed = 0.005):
     self.moveAngle = moveAngle
