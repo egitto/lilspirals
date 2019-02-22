@@ -155,20 +155,37 @@ def animate(shape, rotation, delay = .15, step = 0.00005, n = 400, size = (170,7
     # n += 1
     time.sleep(delay/smooth)
 
-# good values for theta: 2.33068600268, sqrt(2)*pi, sqrt(10)*pi, 2.32324311855, 4.62290939916, 20.7563962399, 2.32120903841
+# pretty values for theta to be constant at: 2.33068600268, sqrt(2)*pi, sqrt(10)*pi, 2.32324311855, 4.62290939916, 20.7563962399, 2.32120903841
 
-theta = sqrt(2)*pi
-# ViewPoints(makePoints(theta, 300), size = (100,60), rotateQuaternion = (1,0.1,0,0)).render()
-sphere = overallShape(r_of = lambda t: abs(sin(t)), z_of = lambda t: cos(t));
-cone = overallShape(r_of = lambda t: t, z_of = lambda t: 10*t);
-cylinder = overallShape(r_of = lambda t: 0.5, z_of = lambda t: t);
-pointy_cone = overallShape(r_of = lambda t: t**2, z_of = lambda t: 10*t);
-parabola = overallShape(r_of = lambda t: t, z_of = lambda t: t**2);
+def identity(t):
+  return t
 
-spinningRod = Rotation(initialQuaternion = (0, 1, 0, 0), moveAngle = (0, 1, 0))
+def absinthe(t):
+  return abs(sin(t))
+
+cone = overallShape(r_of = identity, z_of = identity)
+cylinder = overallShape(r_of = lambda t: 0.5, z_of = identity)
+cappedCylinder = overallShape(r_of = lambda t: 0.5 if t >= 0.5 else t, z_of = lambda t: t if t >= 0.5 else 0.5)
+pointyCone = overallShape(r_of = lambda t: t**2, z_of = lambda t: 10*t, dMod = 1000.0, dA_i = 10)
+parabola = overallShape(r_of = identity, z_of = lambda t: t**2)
+
+hemiSphere = overallShape(r_of = absinthe, z_of = cos, dMod = 1.0)
+sphere = overallShape(r_of = absinthe, z_of = cos, dMod = 2.0)
+smallSphere = overallShape(r_of = absinthe, z_of = cos, dMod = 4.0)
+safeSphere = overallShape(r_of = absinthe, z_of = lambda t: cos(t) + 1.001, dMod = 2.0)
+
+torus = overallShape(r_of = lambda t: sin(t) + 2, z_of = cos, dMod = tau*2)
+safeTorus = overallShape(r_of = lambda t: sin(t) + 2, z_of = lambda t: cos(t) + 1.001, dMod = tau*2)
+
+ridges = overallShape(r_of = lambda t: sin(t) + 5, z_of = lambda t: t + 0.1, dMod = 100)
+
+weirdThing1 = blendShapes(cone, safeSphere, ratio = 0.4)
+weirdThing2 = blendShapes(safeTorus, cappedCylinder, ratio = 0.4)
+
+offAxis = Rotation(initialQuaternion = (0, 1, 0, 0), moveAngle = (0, 1, 0), speed = 0.05)
 christmasTree = Rotation(initialQuaternion = (2**-0.5, 2**-0.5, 0, 0), speed = 0)
 spinningTree = Rotation(initialQuaternion = (2**-0.5, 2**-0.5, 0, 0), moveAngle = (0, 1, 0))
-headOnSpin = Rotation(initialQuaternion = (0, 0, 0, 1), moveAngle = (0, 0, 1))
+headOnSpin = Rotation(initialQuaternion = (0, 0, 0, 1), moveAngle = (0, 0, 1), speed = 0.001)
 noRotation = Rotation(initialQuaternion = (0, 0, 0, 1), speed = 0)
 
-animate(shape = pointy_cone, rotation = noRotation)
+animate(shape = torus, rotation = offAxis, n = 400)
