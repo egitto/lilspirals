@@ -99,25 +99,22 @@ class RenderXY:
 
 class overallShape:
   # just a helper class to hold the various shape functions
-  def __init__(self, dA_initial = 1, r_of = False, z_of = False):
-    if (r_of):
-      self.r_of = r_of
-    if (z_of):
-      self.z_of = z_of
-    self.dA_initial = dA_initial
-  def r_of(self, t):
-    # radius from center, given t where t increases monotonically with point number.
-    return abs(sin(t))
-    # return t**5
-  def z_of(self, t):
-    # depth from origin, given t where t increases monotonically with point number.
-    return cos(t)
+  def __init__(self, dA_i = 1, r_of = False, z_of = False, dMod = 1.0):
+    # r_of is radius from center, given t where t increases monotonically with point number.
+    # z_of is depth from origin, given t where t increases monotonically with point number.
+    # dA_i is initial value of dA, for fine-tuning
+    # dMod is (inverse) density mod, because some shapes work best with different densities.
+    # higher dMod = less dense, so t will reach higher values
+    self.r_of = r_of if r_of else lambda t: t
+    self.z_of = z_of if z_of else lambda t: t
+    self.dA_i = dA_i * 1.0
+    self.dMod = dMod * 1.0
   def get_dt(self, density, dt, r, dr, dz):
     # choose dt to achieve fixed dA of 1/density
     # assumption: dA is proportional to dt
-    goal_dA = 1.0 / density # m^2 / point
-    dA = r * sqrt(dz**2 + dr**2) # m^2
-    dA = dA if dA else self.dA_initial # the first time, we won't have any data
+    goal_dA = self.dMod / density # m^2 / point
+    dA = r * sqrt(dz**2 + dr**2) # m^2 (technically we dropped a 2pi, but w/e)
+    dA = dA if dA else self.dA_i # the first time, we won't have any data
     # square root is just for damping, don't want to over-adjust
     return dt * sqrt(goal_dA / dA)
 
