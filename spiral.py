@@ -86,7 +86,7 @@ class RenderXY:
     for pt in self.scaled_points:
       y = int(pt[1])%self.y
       x = int(pt[0])%self.x
-      a[y][x] = str(pt[2])
+      a[y][x] = max(a[y][x], str(pt[2]))
     printme = "".join(["\n" + "".join(row) for row in a])
     print(printme)
 
