@@ -86,13 +86,8 @@ class RenderXY:
     for pt in self.scaled_points:
       y = int(pt[1])%self.y
       x = int(pt[0])%self.x
-      a[y][x] = pt[2]
-    printme = ""
-    for row in a:
-      s = "\n"
-      for ch in row:
-        s += str(ch)
-      printme += s
+      a[y][x] = str(pt[2])
+    printme = "".join(["\n" + "".join(row) for row in a])
     print(printme)
 
 class overallShape:
