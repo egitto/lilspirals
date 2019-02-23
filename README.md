@@ -6,6 +6,12 @@ Install `numpy` and `transforms3d` (using `pip` or `easyinstall` or whatever it 
 
 Run `python spiral.py`
 
+# Screenshots:
+![gif of globe](../master/gifs/globe.gif)
+![gif of heart](../master/gifs/heart.gif)
+![gif of torus](../master/gifs/torus.gif)
+
+
 # Tips
 Pass different pre-written shapes and rotations to `animate` on the last line to see different patterns
 
