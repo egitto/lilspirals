@@ -1,5 +1,5 @@
-from math import e, pi, sin, cos, sqrt, log, sinh, cosh
-from numpy import array, matrix, dot
+from math import e, pi, sin, cos, sqrt, sinh, cosh
+from numpy import array, matrix, dot, append, product
 import time
 from transforms3d import quaternions as quats
 import sys
@@ -10,8 +10,9 @@ def rPointFactory(z_of, r_of):
   # Factory for the rPoint class, just because I want to define the shape
   # functions z_of and r_of elsewhere
   class rPoint:
-    def __init__(self, i, theta, t = 0):
-      self.i = i
+    def __init__(self, theta, t = 0):
+      # Given floats t and theta, finds the proper r and z values,
+      # and transforms those r and z values into xyz coordinates.
       self.r = r_of(t)
       self.theta = theta
       self.t = t
@@ -27,16 +28,18 @@ def rPointFactory(z_of, r_of):
       return str((self.x,self.y,self.z))
   return rPoint
 
-def makePoints(dTheta, n, rPoint, get_dt):
+def makePoints(dTheta, n, shape):
   old_z = old_r = 0
   # start t at 1, not 0, because otherwise the first get_dt
   t = 0 # units: "seconds" (not related to real time, all this is within one frame)
   old_dt = 1
   rPoints = []
   density = n
+  rPoint = rPointFactory(shape.z_of, shape.r_of)
+  get_dt = shape.get_dt
   for i in range(1,n):
     theta = (i * dTheta)
-    point = rPoint(i, theta, t)
+    point = rPoint(theta, t)
     rPoints += [point]
     z, r = point.z, point.r # z and radius given a particular time
     # dt = get_dt(density, r, r-old_r, z-old_z) # "wait" how long before making the next point?
@@ -94,7 +97,7 @@ class RenderXY:
 
 class overallShape:
   # just a helper class to hold the various shape functions
-  def __init__(self, dA_i = 1, r_of = False, z_of = False, dMod = 1.0):
+  def __init__(self, dA_i = 1, r_of = False, z_of = False, dMod = 1.0, name = 'unnamed', t_goal = False):
     # r_of is radius from center, given t where t increases monotonically with point number.
     # z_of is depth from origin, given t where t increases monotonically with point number.
     # dA_i is initial value of dA, for fine-tuning
@@ -104,6 +107,13 @@ class overallShape:
     self.z_of = z_of if z_of else lambda t: t
     self.dA_i = dA_i * 1.0
     self.dMod = dMod * 1.0
+    self.t_goal = t_goal
+    self.name = name
+  def adjustDensity(self, points):
+    if not self.t_goal: return
+    ratio = (self.t_goal / points[-1].t)
+    # overshot goal (big ratio)? decrease density (increase dMod)
+    self.dMod *= sqrt(ratio)
   def get_dt(self, density, dt, r, dr, dz):
     # choose dt to achieve fixed dA of 1/density
     # assumption: dA is proportional to dt
@@ -142,7 +152,9 @@ def animate(shape, rotation, delay = .15, step = 0.00005, n = 400, size = (170,7
     q = quats.qmult(q, rotateBy)
     # print(q)
     theta = tau/sqrt(2) + step*i/smooth
-    points = makePoints(theta, n, rPoint, shape.get_dt)
+    if shape.t_goal: shape.t_goal = i / 20.0
+    points = makePoints(theta, n, shape)
+    shape.adjustDensity(points)
     if (i != 1): sys.stdout.write("\033[F"*(size[1] + 1))
     ViewPoints(points, size, rotateQuaternion = q).render()
     # print(theta)
@@ -169,7 +181,9 @@ sphere = overallShape(r_of = absinthe, z_of = cos, dMod = 2.0)
 smallSphere = overallShape(r_of = absinthe, z_of = cos, dMod = 4.0)
 safeSphere = overallShape(r_of = absinthe, z_of = lambda t: cos(t) + 1.001, dMod = 2.0)
 
-torus = overallShape(r_of = lambda t: sin(t) + 2, z_of = cos, dMod = tau*2)
+# torus = overallShape(r_of = lambda t: sin(t) + 2, z_of = cos, dMod = tau*2)
+torus = overallShape(r_of = lambda t: sin(t) + 2, z_of = cos, t_goal = 0.01)
+
 safeTorus = overallShape(r_of = lambda t: sin(t) + 2, z_of = lambda t: cos(t) + 1.001, dMod = tau*2)
 
 ridges = overallShape(r_of = lambda t: sin(t) + 5, z_of = lambda t: t + 0.1, dMod = 100)
