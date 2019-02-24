@@ -1,3 +1,4 @@
+#!python
 from math import e, pi, sin, cos, sqrt, sinh, cosh
 from numpy import array, matrix, dot, append, product, log, exp
 import time
@@ -183,6 +184,8 @@ class mutators:
       texture.theta = theta + tau * amp * sin(i * freq)
     return fxn
   def expandShape(self, rate):
+    # when t_f is too big, errors in dt calculation accumulate, which can make it flip out
+    # you may want to set a max_dt if that happens, or use oscillateShape instead
     def fxn(shape, **kwargs):
       shape.t_f += rate
     return fxn
@@ -251,7 +254,7 @@ def flowTorus():
 def zaWorudo():
   animate(shape = sphere, mutators = [mutators().oscillatingTheta(tau * (19/99), 1E-3, 0.1)], rotation = spinningTree, n = 400)
 def spiralsTorus():
-  animate(shape = torus, mutators = [mutators().expandShape(5E-2)], rotation = offAxisSlow, n = 400)
+  animate(shape = torus, mutators = [mutators().oscillateShape(50, 50, 1E-2)], rotation = offAxisSlow, n = 400)
 def flexingDivot():
   animate(shape = weirdThing1, mutators = [mutators().oscillateShape(pi/2, pi/2, 0.1)], rotation = offAxisSlow, n = 400)
 def heart():
@@ -264,4 +267,4 @@ def sunflower():
 # import cProfile
 # cProfile.run('sunflower()')
 
-sunflower()
+spiralsTorus()

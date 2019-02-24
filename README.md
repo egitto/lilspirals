@@ -2,9 +2,12 @@
 When run, it prints pretty spirals in your terminal.
 
 # How to use:
-Install `numpy` and `transforms3d` (using `pip` or `easyinstall` or whatever it is kids do these days)
-
-Run `python spiral.py`
+```
+git clone https://github.com/egitto/lilspirals
+cd lilspirals
+pip install numpy && pip install transforms3d
+./spiral.py
+```
 
 # Screenshots:
 ![gif of globe](../master/gifs/globe.gif)
