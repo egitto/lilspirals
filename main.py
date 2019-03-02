@@ -23,6 +23,7 @@ def animate(shape, rotation, mutators = [], delay = .15, step = 0.00005, n = 400
   rotateBy = quats.axangle2quat(rotation.moveAngle, rotation.speed*tau/smooth)
   texture = Texture(theta = tau/sqrt(2))
   while True:
+    frameStart = time.time()
     q = quats.qmult(q, rotateBy)
     # print(q)
     [mut(shape = shape, i = i/smooth, texture = texture) for mut in mutators]
@@ -32,7 +33,8 @@ def animate(shape, rotation, mutators = [], delay = .15, step = 0.00005, n = 400
     ViewPoints(points, size, rotateQuaternion = q).render()
     # print(theta)
     i += 1
-    time.sleep(delay/smooth)
+    frameDuration = time.time() - frameStart
+    time.sleep(delay/smooth - max(0, frameDuration))
 
 def identity(t):
   return t
