@@ -16,7 +16,7 @@ Pass different pre-written shapes and rotations to `animate` on the last line to
 
 Make different custom shapes; see references.
 - Blending existing shapes with blendShapes
-- Define new shapes with `overallShape` constructor, passing in custom `r_of` and `z_of` functions
+- Define new shapes with `Shape` constructor, passing in custom `r_of` and `z_of` functions
 - Use t_i and t_f* to fit the domain of the r_of and z_of functions
   - caveat: the desired t_f is achieved by iteratively adjusting dMod, which is not perfect
     - if you have a better solution let me know

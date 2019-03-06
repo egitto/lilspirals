@@ -1,4 +1,14 @@
 class Rotation:
+  """
+  Rotation class
+
+  Defines how the points are rotated each tick, before being viewed.
+
+  Properties:
+  initialQuaternion (tuple(float|int, float|int, float|int, float|int): the angle to start at
+  moveAngle (tuple(4, float|int)): axis of rotation
+  speed (float): number of rotations about moveAngle per tick
+  """
   def __init__(self, initialQuaternion = (1, 0, 0, 0), moveAngle = (1, 0, 0), speed = 0.005):
     self.moveAngle = moveAngle
     self.initialQuaternion = initialQuaternion

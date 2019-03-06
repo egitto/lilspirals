@@ -1,15 +1,10 @@
-from math import sin, pi
+from math import sin, pi, sqrt
 tau = 2 * pi
 
-def deltaTheta(dTheta):
-  def fxn(texture, **kwargs):
-    texture.theta += dTheta
-  return fxn
-
-def fixedTheta(theta):
+def theta(initial = sqrt(2)*pi, delta = 0):
   # pretty values for theta to be constant at: 2.33068600268, sqrt(2)*pi, sqrt(10)*pi, 2.32324311855, 4.62290939916, 20.7563962399, 2.32120903841
-  def fxn(texture, **kwargs):
-    texture.theta = theta
+  def fxn(texture, i, **kwargs):
+    texture.theta = initial + i * delta
   return fxn
 
 def oscillatingTheta(theta, amp, freq):
@@ -17,9 +12,9 @@ def oscillatingTheta(theta, amp, freq):
     texture.theta = theta + tau * amp * sin(i * freq)
   return fxn
 
-def expandShape(rate):
-  def fxn(shape, **kwargs):
-    shape.t_f += rate
+def expandShape(initial, delta = 0.):
+  def fxn(shape, i, **kwargs):
+    shape.t_f = initial + i * delta
   return fxn
 
 def oscillateShape(center, amp, freq):
