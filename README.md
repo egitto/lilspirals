@@ -6,10 +6,16 @@ Python 2 or 3, `numpy`, `transforms3d`
 
 # How to use:
 ```
-pip install numpy
-pip install transforms3d
+git clone https://github.com/egitto/lilspirals
+cd lilspirals
+pip install numpy && pip install transforms3d
 ./main.py
 ```
+
+# Screenshots:
+![gif of globe](../master/gifs/globe.gif)
+![gif of heart](../master/gifs/heart.gif)
+![gif of torus](../master/gifs/torus.gif)
 
 # Tips
 Pass different pre-written shapes and rotations to `animate` on the last line to see different patterns

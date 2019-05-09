@@ -13,6 +13,8 @@ def oscillatingTheta(theta, amp, freq):
   return fxn
 
 def expandShape(initial, delta = 0.):
+  # when t_f is too big, errors in dt calculation accumulate, which can make it flip out
+  # you may want to set a max_dt if that happens, or use oscillateShape instead
   def fxn(shape, i, **kwargs):
     shape.t_f = initial + i * delta
   return fxn

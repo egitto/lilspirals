@@ -99,7 +99,7 @@ def zaWorudo():
   animate(shape = sphere, mutators = [mutators.oscillatingTheta(tau * (19/99), 1E-3, 0.1)], rotation = spinningTree, n = 400)
 def spiralsTorus():
   """Animates a particularly lovely torus"""
-  animate(shape = torus, mutators = [mutators.expandShape(tau, 5E-2)], rotation = offAxisSlow, n = 400)
+  animate(shape = torus, mutators = [mutators.oscillateShape(50, 50, 1E-2)], rotation = offAxisSlow, n = 400)
 def flexingDivot():
   """Animates a weird moving shape"""
   animate(shape = weirdThing1, mutators = [mutators.oscillateShape(pi/2, pi/2, 0.1)], rotation = offAxisSlow, n = 400)
