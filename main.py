@@ -44,7 +44,8 @@ def animate(shape, rotation, mutators = [], delay = .15, n = 400, size = (170,70
     # print(theta)
     i += 1
     frameDuration = time.time() - frameStart
-    time.sleep(delay/smooth - max(0, frameDuration))
+    sleepTime = delay/smooth - max(0, frameDuration)
+    if sleepTime > 0: time.sleep(sleepTime)
 
 def identity(t):
   """Returns t"""
