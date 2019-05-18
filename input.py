@@ -13,7 +13,8 @@ down = quats.axangle2quat((1, 0, 0), 0.1);
 smallDown = quats.axangle2quat((1, 0, 0), 0.02);
 
 def handleInput(ch, q, i, paused):
-    if ch == -1: return (ch, q, i, paused)
+    if not 0 <= ch <= 255: return (ch, q, i, paused)
+
     c = chr(ch)
 
     if (c == 'a'): q = quats.qmult(q, left)
