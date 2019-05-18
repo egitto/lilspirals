@@ -34,7 +34,8 @@ Several different rotations are predefined
 
 # Further ideas (todos?):
 - A better rendering system than just dumping output into a terminal
-  - ncurses?
+  - curses:
+    - pause flushes during populating the screen, because it's flickery
   - output to png or jpg?
   - output to animated gif? (ideally via pipe)
   - display as a legit animation that accepts input (openGL?) 
