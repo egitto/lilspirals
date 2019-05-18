@@ -5,9 +5,11 @@ from transforms3d import quaternions as quats
 import sys
 import mutators
 from points import rPointFactory, makePoints
-from view import ViewPoints
+from view import ViewPoints, screenSingleton
 from shape import Shape, geoBlend, arithBlend
 from rotations import offAxis, offAxisSlow, christmasTree, spinningTree, headOnSpin, noRotation
+import curses
+from input import handleInput
 
 tau = 2*pi
 
@@ -16,7 +18,7 @@ class Texture:
   def __init__(self, theta):
     self.theta = theta
 
-def animate(shape, rotation, mutators = [], delay = .15, n = 400, size = (170,70), smooth = 4.):
+def _animate(shape, rotation, mutators = [], delay = .15, n = 400, size = (170,70), smooth = 4.):
   """
   Animates the shape passed in into the console
 
@@ -32,20 +34,28 @@ def animate(shape, rotation, mutators = [], delay = .15, n = 400, size = (170,70
   q = rotation.initialQuaternion
   rotateBy = quats.axangle2quat(rotation.moveAngle, rotation.speed*tau/smooth)
   texture = Texture(theta = tau/sqrt(2))
+  paused = False
   while True:
     frameStart = time.time()
-    q = quats.qmult(q, rotateBy)
-    # print(q)
+    ch = screenSingleton.getch()
+    ch, q, i, paused = handleInput(ch, q, i, paused)
     [mut(shape = shape, i = i/smooth, texture = texture) for mut in mutators]
     points = makePoints(texture.theta, n, shape)
-    if (i != 1): sys.stdout.write("\033[F"*(size[1] + 1))
     shape.adjustDensity(points)
     ViewPoints(points, size, rotateQuaternion = q).render()
-    # print(theta)
-    i += 1
+    if not paused: i += 1
     frameDuration = time.time() - frameStart
     sleepTime = delay/smooth - max(0, frameDuration)
     if sleepTime > 0: time.sleep(sleepTime)
+
+def animate(*args, **kwargs):
+  try:
+    _animate(*args, **kwargs)
+  except:
+    curses.echo()
+    curses.nocbreak()
+    curses.endwin()
+    raise
 
 def identity(t):
   """Returns t"""
@@ -100,7 +110,7 @@ def zaWorudo():
   animate(shape = sphere, mutators = [mutators.oscillatingTheta(tau * (19/99), 1E-3, 0.1)], rotation = spinningTree, n = 400)
 def spiralsTorus():
   """Animates a particularly lovely torus"""
-  animate(shape = torus, mutators = [mutators.oscillateShape(50, 50, 1E-2)], rotation = offAxisSlow, n = 400)
+  animate(shape = torus, mutators = [mutators.oscillateShape(50 + tau, 50, 1E-2)], rotation = offAxis, n = 400)
 def flexingDivot():
   """Animates a weird moving shape"""
   animate(shape = weirdThing1, mutators = [mutators.oscillateShape(pi/2, pi/2, 0.1)], rotation = offAxisSlow, n = 400)
@@ -114,7 +124,7 @@ def sunflower():
   """Animates an ordinary circle, slowly rotating"""
   animate(shape = plane, mutators = [mutators.theta(initial = sqrt(2)*pi)], rotation = headOnSpin, n = 400)
 
-# import cProfile
-# cProfile.run('xmas()')
+import cProfile
+cProfile.run('spiralsTorus()')
 
-spiralsTorus()
+# spiralsTorus()

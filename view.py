@@ -1,5 +1,11 @@
 from transforms3d import quaternions as quats
 from numpy import matrix, array, dot
+import curses
+from _curses import error as cursesError
+
+screenSingleton = curses.initscr()
+curses.noecho()
+screenSingleton.nodelay(1)
 
 class ViewPoints:
   def __init__(self, points, size = (240,100), rotateQuaternion = (1,0,0,0)):
@@ -23,10 +29,11 @@ class Bounds:
 boundsSingleton = Bounds()
 
 class RenderXY:
-  def __init__(self, points, size = (240, 100), persistentBounds = boundsSingleton):
+  def __init__(self, points, size = (240, 100), persistentBounds = boundsSingleton, screen = screenSingleton):
     self.x, self.y = size
     self.persistentBounds = persistentBounds
     self.scaled_points = self.scale(points)
+    self.screen = screen
   def scale(self, points_XYetc):
     xs = points_XYetc[:,0]
     ys = points_XYetc[:,1]
@@ -38,10 +45,16 @@ class RenderXY:
     ys = (ys - s.Ymin) * (self.y - 1) / (s.Ymax - s.Ymin)
     return zip(xs, ys, ch)
   def pr(self):
-    a = array([[' ']*self.x]*self.y)
-    for pt in self.scaled_points:
-      y = int(pt[1])%self.y
-      x = int(pt[0])%self.x
-      a[y][x] = max(a[y][x], str(pt[2]))
-    printme = "".join(["\n" + "".join(row) for row in a])
-    print(printme)
+    screen = self.screen
+    screen.clear()
+    a = array([['']*self.x]*self.y) # just here for the bucket sort
+    try:
+      for pt in self.scaled_points:
+        y = int(pt[1])%self.y
+        x = int(pt[0])%self.x
+        a[y][x] = str(pt[2])
+      for y in range(len(a)):
+        for x, v in enumerate(a[y]):
+          if v: screen.addstr(y, x, v)
+    except cursesError:
+      pass
