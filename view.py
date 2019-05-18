@@ -47,14 +47,12 @@ class RenderXY:
   def pr(self):
     screen = self.screen
     screen.clear()
-    a = array([['']*self.x]*self.y) # just here for the bucket sort
-    try:
-      for pt in self.scaled_points:
-        y = int(pt[1])%self.y
-        x = int(pt[0])%self.x
-        a[y][x] = str(pt[2])
-      for y in range(len(a)):
-        for x, v in enumerate(a[y]):
-          if v: screen.addstr(y, x, v)
-    except cursesError:
-      pass
+    capY, capX = screen.getmaxyx()
+    for pt in self.scaled_points:
+      y = int(pt[1])%self.y
+      x = int(pt[0])%self.x
+      v = str(pt[2])[0]
+      try :
+        screen.addstr(y, x, v)
+      except cursesError:
+        pass
