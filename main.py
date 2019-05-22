@@ -37,8 +37,10 @@ def _animate(shape, rotation, mutators = [], delay = .15, n = 400, size = (170,7
   paused = False
   while True:
     frameStart = time.time()
-    ch = screenSingleton.getch()
-    ch, q, i, paused = handleInput(ch, q, i, paused)
+    while True: # todo: factor out input loop
+      ch = screenSingleton.getch()
+      ch, q, i, paused = handleInput(ch, q, i, paused)
+      if ch == -1: break
     [mut(shape = shape, i = i/smooth, texture = texture) for mut in mutators]
     points = makePoints(texture.theta, n, shape)
     shape.adjustDensity(points)
@@ -50,6 +52,8 @@ def _animate(shape, rotation, mutators = [], delay = .15, n = 400, size = (170,7
 
 def animate(*args, **kwargs):
   try:
+    curses.noecho()
+    curses.curs_set(0)
     _animate(*args, **kwargs)
   except:
     curses.echo()
@@ -122,7 +126,7 @@ def xmas():
   animate(shape = pointyCone, mutators = [mutators.theta(delta = 1E-4)], rotation = spinningTree, n = 200)
 def sunflower():
   """Animates an ordinary circle, slowly rotating"""
-  animate(shape = plane, mutators = [mutators.theta(initial = sqrt(2)*pi)], rotation = headOnSpin, n = 400)
+  animate(shape = plane, mutators = [mutators.oscillatingTheta(pi, 0.1, 1E-3)], rotation = headOnSpin, n = 400)
 
 import cProfile
 cProfile.run('spiralsTorus()')

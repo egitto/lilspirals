@@ -4,7 +4,6 @@ import curses
 from _curses import error as cursesError
 
 screenSingleton = curses.initscr()
-curses.noecho()
 screenSingleton.nodelay(1)
 
 class ViewPoints:
@@ -53,6 +52,7 @@ class RenderXY:
       x = int(pt[0])%self.x
       v = str(pt[2])[0]
       try :
-        screen.addstr(y, x, v)
+        screen.addch(y, x, v)
       except cursesError:
         pass
+    screen.refresh()
